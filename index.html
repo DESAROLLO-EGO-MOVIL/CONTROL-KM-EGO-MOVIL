@@ -35,7 +35,6 @@
       margin-bottom: 22px;
     }
 
-    /* Estilo del Logo */
     .brand-logo-container {
       margin-bottom: 12px;
       display: flex;
@@ -96,6 +95,7 @@
       font-size: 15px;
       color: #111827;
       outline: none;
+      background-color: #ffffff;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
@@ -190,7 +190,7 @@
         <span class="logo-badge" id="badge-logo-login" style="display: none;">EGO MÓVIL</span>
       </div>
       <h2>Control de Flota</h2>
-      <p class="subtitle">Ingresa la ruta asignada y contraseña para comenzar la carga diaria</p>
+      <p class="subtitle">Ingresa la ruta asignada y contraseña para acceder</p>
     </div>
 
     <div class="form-group">
@@ -199,7 +199,7 @@
     </div>
 
     <div class="form-group">
-      <label for="input-pass">Contraseña General</label>
+      <label for="input-pass">Contraseña</label>
       <input type="password" id="input-pass" placeholder="Ingresa contraseña">
     </div>
 
@@ -244,7 +244,16 @@
 
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZZW_-ACDrdCJ395cIR4mhfL6LNrJUinP3WhLVkIPDyMd8V6M258rV9gGTCNhULGmQ/exec";
-  const PASSWORD_UNIVERSAL = "EGO-MOVIL";
+
+  // MATRIZ PRIVADA DE RUTAS Y CONTRASEÑAS
+  // Siempre define las rutas en MAYÚSCULAS
+  const CREDENCIALES_RUTAS = {
+    "RUTA 527": "EGO-527",
+    "RUTA 214": "EGO-214",
+    "RUTA 228": "EGO-228",
+    "RUTA 105": "EGO-105",
+    "SUPERVISOR": "EGO-ADMIN"
+  };
 
   let rutaActual = "";
 
@@ -289,22 +298,26 @@
   }
 
   function ejecutarLogin() {
-    const ruta = document.getElementById("input-ruta").value.trim().toUpperCase();
-    const pass = document.getElementById("input-pass").value.trim();
+    // Normaliza eliminando espacios duplicados y convirtiendo a mayúsculas
+    const rutaIngresada = document.getElementById("input-ruta").value.trim().replace(/\s+/g, " ").toUpperCase();
+    const passIngresada = document.getElementById("input-pass").value.trim();
 
     ocultarMensaje("msg-login");
 
-    if (!ruta) {
-      mostrarMensaje("msg-login", "Por favor ingresa el nombre de la ruta.", true);
+    if (!rutaIngresada || !passIngresada) {
+      mostrarMensaje("msg-login", "Ingresa tanto la ruta como la contraseña.", true);
       return;
     }
 
-    if (pass !== PASSWORD_UNIVERSAL) {
-      mostrarMensaje("msg-login", "Contraseña incorrecta.", true);
+    const passEsperada = CREDENCIALES_RUTAS[rutaIngresada];
+
+    // Mensaje genérico para no dar pistas de qué rutas existen
+    if (!passEsperada || passIngresada !== passEsperada) {
+      mostrarMensaje("msg-login", "Ruta o contraseña incorrecta.", true);
       return;
     }
 
-    abrirFormulario(ruta);
+    abrirFormulario(rutaIngresada);
   }
 
   async function enviarRegistro() {
@@ -322,7 +335,7 @@
 
     const km = Number(kmVal);
     if (isNaN(km) || km < 0 || km > 2500000) {
-      mostrarMensaje("msg-formulario", "Ingresa un kilometraje válido (mayor a 0).", true);
+      mostrarMensaje("msg-formulario", "Ingresa un kilometraje válido.", true);
       return;
     }
 
@@ -367,9 +380,10 @@
     ocultarMensaje("msg-login");
     document.getElementById("vista-formulario").style.display = "none";
     document.getElementById("vista-login").style.display = "block";
+    document.getElementById("input-ruta").focus();
   }
 
-  // Navegación con tecla Enter
+  // Navegación con Enter
   document.getElementById("input-ruta").addEventListener("keypress", (e) => {
     if (e.key === "Enter") document.getElementById("input-pass").focus();
   });
@@ -383,10 +397,10 @@
     if (e.key === "Enter") enviarRegistro();
   });
 
-  // Restaurar sesión automática si ya estaba autenticado
+  // Restaurar sesión si ya estaba iniciada
   window.addEventListener("DOMContentLoaded", () => {
     const rutaGuardada = localStorage.getItem("ego_ruta_activa");
-    if (rutaGuardada) {
+    if (rutaGuardada && CREDENCIALES_RUTAS[rutaGuardada]) {
       abrirFormulario(rutaGuardada);
     }
   });
