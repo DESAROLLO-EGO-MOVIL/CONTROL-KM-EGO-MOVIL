@@ -195,7 +195,7 @@
 
     <div class="form-group">
       <label for="input-ruta">Ruta</label>
-      <input type="text" id="input-ruta" placeholder="Ej: RUTA 527" autocomplete="off" autocapitalize="characters">
+      <input type="text" id="input-ruta" placeholder="Ej: 527 o RUTA 527" autocomplete="off" autocapitalize="characters">
     </div>
 
     <div class="form-group">
@@ -245,14 +245,23 @@
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZZW_-ACDrdCJ395cIR4mhfL6LNrJUinP3WhLVkIPDyMd8V6M258rV9gGTCNhULGmQ/exec";
 
-  // MATRIZ PRIVADA DE RUTAS Y CONTRASEÑAS
-  // Siempre define las rutas en MAYÚSCULAS
+  // MATRIZ DE RUTAS OFICIALES Y SUS CONTRASEÑAS
   const CREDENCIALES_RUTAS = {
+    "RUTA 109": "EGO-109",
+    "RUTA 117": "EGO-117",
     "RUTA 527": "EGO-527",
-    "RUTA 214": "EGO-214",
+    "RUTA 218": "EGO-218",
+    "RUTA 601": "EGO-601",
+    "RUTA 223": "EGO-223",
+    "RUTA 68":  "EGO-68",
     "RUTA 228": "EGO-228",
-    "RUTA 105": "EGO-105",
-    "SUPERVISOR": "EGO-ADMIN"
+    "RUTA 1":   "EGO-1",
+    "RUTA 310": "EGO-310",
+    "RUTA 201": "EGO-201",
+    "RUTA 311": "EGO-311",
+    "RUTA 313": "EGO-313",
+    "RUTA 39":  "EGO-39",
+    "RUTA 41":  "EGO-41"
   };
 
   let rutaActual = "";
@@ -298,8 +307,7 @@
   }
 
   function ejecutarLogin() {
-    // Normaliza eliminando espacios duplicados y convirtiendo a mayúsculas
-    const rutaIngresada = document.getElementById("input-ruta").value.trim().replace(/\s+/g, " ").toUpperCase();
+    let rutaIngresada = document.getElementById("input-ruta").value.trim().replace(/\s+/g, " ").toUpperCase();
     const passIngresada = document.getElementById("input-pass").value.trim();
 
     ocultarMensaje("msg-login");
@@ -309,9 +317,13 @@
       return;
     }
 
+    // Si escriben solo el número (ej: "527" o "68"), se le añade "RUTA "
+    if (!rutaIngresada.startsWith("RUTA ") && !isNaN(rutaIngresada)) {
+      rutaIngresada = "RUTA " + rutaIngresada;
+    }
+
     const passEsperada = CREDENCIALES_RUTAS[rutaIngresada];
 
-    // Mensaje genérico para no dar pistas de qué rutas existen
     if (!passEsperada || passIngresada !== passEsperada) {
       mostrarMensaje("msg-login", "Ruta o contraseña incorrecta.", true);
       return;
