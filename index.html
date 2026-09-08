@@ -1,1 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Kilometraje - Rutas Ego Móvil</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
 
+    body {
+      background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 440px;
+      border-radius: 16px;
+      padding: 32px 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .header-logo {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .logo-badge {
+      display: inline-block;
+      background: #e8f0fe;
+      color: #1a73e8;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      color: #1f2937;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      color: #374151;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #111827;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s, background-color 0.2s, opacity 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background-color: #1a73e8;
+      color: #ffffff;
+      margin-top: 10px;
+    }
+
+    .btn-primary:hover {
+      background-color: #1557b0;
+    }
+
+    .btn-secondary {
+      background-color: #f3f4f6;
+      color: #4b5563;
+      margin-top: 10px;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e5e7eb;
+    }
+
+    .feedback-msg {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      display: none;
+    }
+
+    .feedback-msg.error {
+      background-color: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .feedback-msg.success {
+      background-color: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    #vista-formulario {
+      display: none;
+    }
+
+    .active-route-badge {
+      display: inline-flex;
+      align-items: center;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 8px 16px;
+      border-radius: 30px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- PANTALLA 1: LOGIN -->
+  <div id="vista-login">
+    <div class="header-logo">
+      <span class="logo-badge">EGO MÓVIL</span>
+      <h2>Control de Flota</h2>
+      <p class="subtitle">Ingresa la ruta asignada y contraseña para comenzar la carga diaria</p>
+    </div>
+
+    <div class="form-group">
+      <label for="input-ruta">Ruta</label>
+      <input type="text" id="input-ruta" placeholder="Ej: RUTA 527" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label for="input-pass">Contraseña General</label>
+      <input type="password" id="input-pass" placeholder="Ingresa contraseña">
+    </div>
+
+    <button class="btn-primary" onclick="ejecutarLogin()">Iniciar Sesión</button>
+    <div id="msg-login" class="feedback-msg error"></div>
+  </div>
+
+  <!-- PANTALLA 2: FORMULARIO DE CAPTURA -->
+  <div id="vista-formulario">
+    <div class="header-logo">
+      <div class="active-route-badge">
+        📍 <span id="label-ruta-activa" style="margin-left: 6px;">RUTA</span>
+      </div>
+      <h2>Registro de Kilometraje</h2>
+      <p class="subtitle">Ingresa la unidad, fecha y kilometraje actual</p>
+    </div>
+
+    <div class="form-group">
+      <label for="input-unidad">Número de Unidad / Económico</label>
+      <input type="text" id="input-unidad" placeholder="Ej: 6047" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label for="input-fecha">Fecha del Registro</label>
+      <input type="date" id="input-fecha">
+    </div>
+
+    <div class="form-group">
+      <label for="input-km">Kilometraje (Odómetro)</label>
+      <input type="number" id="input-km" placeholder="Ej: 142500" step="any">
+    </div>
+
+    <button class="btn-primary" id="btn-guardar" onclick="enviarRegistro()">Guardar Kilometraje</button>
+    <button class="btn-secondary" onclick="cerrarSesion()">Cambiar de Ruta / Salir</button>
+    <div id="msg-formulario" class="feedback-msg"></div>
+  </div>
+</div>
+
+<script>
+  // URL DE APPS SCRIPT CONECTADA
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmwzR_-t1h07ghgmUWWb8T89Z6lQROLYBEKKnJPMX_Wi6UQiXuc2SuxA2kUXdY_twb-A/exec";
+  const PASSWORD_UNIVERSAL = "EGO-MOVIL";
+
+  let rutaActual = "";
+
+  function mostrarMensaje(elementoId, texto, esError) {
+    const el = document.getElementById(elementoId);
+    el.innerText = texto;
+    el.className = "feedback-msg " + (esError ? "error" : "success");
+    el.style.display = "block";
+  }
+
+  function ocultarMensaje(elementoId) {
+    const el = document.getElementById(elementoId);
+    el.style.display = "none";
+  }
+
+  function ejecutarLogin() {
+    const ruta = document.getElementById("input-ruta").value.trim().toUpperCase();
+    const pass = document.getElementById("input-pass").value.trim();
+
+    ocultarMensaje("msg-login");
+
+    if (!ruta) {
+      mostrarMensaje("msg-login", "Por favor ingresa el nombre de la ruta.", true);
+      return;
+    }
+
+    if (pass !== PASSWORD_UNIVERSAL) {
+      mostrarMensaje("msg-login", "Contraseña incorrecta.", true);
+      return;
+    }
+
+    rutaActual = ruta;
+    document.getElementById("label-ruta-activa").innerText = rutaActual;
+    document.getElementById("vista-login").style.display = "none";
+    document.getElementById("vista-formulario").style.display = "block";
+
+    // Poner fecha de hoy por defecto en formato local YYYY-MM-DD
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, "0");
+    const dia = String(hoy.getDate()).padStart(2, "0");
+    document.getElementById("input-fecha").value = `${anio}-${mes}-${dia}`;
+    
+    document.getElementById("input-unidad").focus();
+  }
+
+  async function enviarRegistro() {
+    const unidad = document.getElementById("input-unidad").value.trim().toUpperCase();
+    const fecha = document.getElementById("input-fecha").value;
+    const km = document.getElementById("input-km").value.trim();
+    const btn = document.getElementById("btn-guardar");
+
+    ocultarMensaje("msg-formulario");
+
+    if (!unidad || !fecha || !km) {
+      mostrarMensaje("msg-formulario", "Debes llenar todos los campos.", true);
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Guardando en Excel...";
+
+    const datos = {
+      ruta: rutaActual,
+      unidad: unidad,
+      fecha: fecha,
+      km: km
+    };
+
+    try {
+      const respuesta = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(datos)
+      });
+
+      const resultado = await respuesta.json();
+
+      if (resultado.status === "success") {
+        mostrarMensaje("msg-formulario", resultado.message, false);
+        document.getElementById("input-unidad").value = "";
+        document.getElementById("input-km").value = "";
+        document.getElementById("input-unidad").focus();
+      } else {
+        throw new Error(resultado.message);
+      }
+    } catch (error) {
+      mostrarMensaje("msg-formulario", "Error de conexión: " + error.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "Guardar Kilometraje";
+    }
+  }
+
+  function cerrarSesion() {
+    rutaActual = "";
+    document.getElementById("input-ruta").value = "";
+    document.getElementById("input-pass").value = "";
+    document.getElementById("input-unidad").value = "";
+    document.getElementById("input-km").value = "";
+    ocultarMensaje("msg-formulario");
+    ocultarMensaje("msg-login");
+    document.getElementById("vista-formulario").style.display = "none";
+    document.getElementById("vista-login").style.display = "block";
+  }
+
+  // Permitir dar Enter en los campos
+  document.getElementById("input-pass").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") ejecutarLogin();
+  });
+  document.getElementById("input-km").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") enviarRegistro();
+  });
+</script>
+
+</body>
+</html>
