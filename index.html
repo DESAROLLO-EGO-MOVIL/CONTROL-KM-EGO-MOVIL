@@ -24,7 +24,7 @@
     .container {
       background: #ffffff;
       width: 100%;
-      max-width: 440px;
+      max-width: 460px;
       border-radius: 16px;
       padding: 32px 28px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
@@ -288,32 +288,30 @@
     btn.disabled = true;
     btn.innerText = "Guardando en Excel...";
 
-    const datos = {
-      ruta: rutaActual,
-      unidad: unidad,
-      fecha: fecha,
-      km: km
-    };
+    // Estructurar parámetros como URLSearchParams para evitar bloqueo CORS
+    const params = new URLSearchParams();
+    params.append("ruta", rutaActual);
+    params.append("unidad", unidad);
+    params.append("fecha", fecha);
+    params.append("km", km);
 
     try {
-      const respuesta = await fetch(SCRIPT_URL, {
+      await fetch(SCRIPT_URL, {
         method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(datos)
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: params.toString()
       });
 
-      const resultado = await respuesta.json();
+      mostrarMensaje("msg-formulario", `¡Registro guardado con éxito en [${rutaActual}]!`, false);
+      document.getElementById("input-unidad").value = "";
+      document.getElementById("input-km").value = "";
+      document.getElementById("input-unidad").focus();
 
-      if (resultado.status === "success") {
-        mostrarMensaje("msg-formulario", resultado.message, false);
-        document.getElementById("input-unidad").value = "";
-        document.getElementById("input-km").value = "";
-        document.getElementById("input-unidad").focus();
-      } else {
-        throw new Error(resultado.message);
-      }
     } catch (error) {
-      mostrarMensaje("msg-formulario", "Error de conexión: " + error.message, true);
+      mostrarMensaje("msg-formulario", "Error al enviar: " + error.message, true);
     } finally {
       btn.disabled = false;
       btn.innerText = "Guardar Kilometraje";
